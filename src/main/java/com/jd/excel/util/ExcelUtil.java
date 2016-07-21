@@ -12,13 +12,55 @@ import java.lang.reflect.Field;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 /**
  * EXCEL文件创建工具类
  * Created by caozhifei on 2016/7/20.
  */
 public class ExcelUtil {
-    private final static String DATE_FORMAT = "m/d/yy h:mm:s";
+    private final static String DATE_FORMAT = "m/d/yy h:mm";
+    /**
+     * 创建excel文件压缩文件
+     * @param lists
+     * @return
+     * @throws Exception
+     */
+    public static void createExcelZip(List<List> lists,String zipName) throws Exception {
+        FileOutputStream fileOut = new FileOutputStream(zipName);
+        try {
+            byte[] bytes = createExcelZip(lists);
+            fileOut.write(bytes);
+        } finally {
+            fileOut.flush();
+            fileOut.close();
+        }
+    }
+    /**
+     * 创建excel文件压缩流，并返回字节数组
+     * @param lists
+     * @return
+     * @throws Exception
+     */
+    public static byte[] createExcelZip(List<List> lists) throws Exception {
+        if(lists == null || lists.isEmpty()){
+            return null;
+        }
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        ZipOutputStream out = new ZipOutputStream(bos);
+        int i = 0;
+        for(List<?> list : lists) {
+            i++;
+            byte[] bytes = createExcel(list, true);
+            out.putNextEntry(new ZipEntry(i+".xlsx"));
+            out.write(bytes);
+            out.flush();
+        }
+        out.close();
+        return bos.toByteArray();
+    }
+
 
     /**
      * 根据元数据生成excel文件
