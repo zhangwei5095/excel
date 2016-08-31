@@ -209,9 +209,14 @@ public class ExcelUtil {
         return out.toByteArray();
     }
 
-    public static List<Map> parseExcel(InputStream is) throws IOException {
+    public static List<Map> parseExcel(InputStream is,boolean isXls) throws IOException {
         List<Map> list = new ArrayList<Map>();
-        Workbook book = new XSSFWorkbook(is);
+        Workbook book;
+        if(isXls){
+            book = new HSSFWorkbook(is);
+        }else{
+           book = new XSSFWorkbook(is);
+        }
         Sheet sheet = book.getSheetAt(0);
         for (int i = 1; i < sheet.getLastRowNum() + 1; i++) {
             Row row = sheet.getRow(i);
@@ -306,9 +311,9 @@ public class ExcelUtil {
     }
 
     public static void main(String[] args) throws Exception {
-        String path = "d:/test.xlsx";
+        String path = "d:/util.xlsx";
         FileInputStream is = new FileInputStream(new File(path));
-        List list = parseExcel(is);
+        List list = parseExcel(is,false);
         System.out.println(list);
     }
 }
