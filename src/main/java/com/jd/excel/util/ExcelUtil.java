@@ -4,14 +4,16 @@ import com.jd.excel.annotation.Excel;
 import com.jd.excel.factory.ExtendWorkbookFactory;
 import com.jd.excel.model.ExcelVo;
 import org.apache.commons.beanutils.PropertyUtils;
+import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-import java.io.ByteArrayOutputStream;
-import java.io.FileOutputStream;
+import java.io.*;
 import java.lang.reflect.Field;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -21,13 +23,15 @@ import java.util.zip.ZipOutputStream;
  */
 public class ExcelUtil {
     private final static String DATE_FORMAT = "m/d/yy h:mm";
+
     /**
      * 创建excel文件压缩文件
+     *
      * @param lists
      * @return
      * @throws Exception
      */
-    public static void createExcelZip(List<List> lists,String zipName) throws Exception {
+    public static void createExcelZip(List<List> lists, String zipName) throws Exception {
         FileOutputStream fileOut = new FileOutputStream(zipName);
         try {
             byte[] bytes = createExcelZip(lists);
@@ -37,23 +41,25 @@ public class ExcelUtil {
             fileOut.close();
         }
     }
+
     /**
      * 创建excel文件压缩流，并返回字节数组
+     *
      * @param lists
      * @return
      * @throws Exception
      */
     public static byte[] createExcelZip(List<List> lists) throws Exception {
-        if(lists == null || lists.isEmpty()){
+        if (lists == null || lists.isEmpty()) {
             return null;
         }
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ZipOutputStream out = new ZipOutputStream(bos);
         int i = 0;
-        for(List<?> list : lists) {
+        for (List<?> list : lists) {
             i++;
             byte[] bytes = createExcel(list, true);
-            out.putNextEntry(new ZipEntry(i+".xlsx"));
+            out.putNextEntry(new ZipEntry(i + ".xlsx"));
             out.write(bytes);
             out.flush();
         }
@@ -64,6 +70,7 @@ public class ExcelUtil {
 
     /**
      * 根据元数据生成excel文件
+     *
      * @param fileName
      * @param list
      * @throws Exception
@@ -81,6 +88,7 @@ public class ExcelUtil {
 
     /**
      * 创建excel文件，并返回字节数组
+     *
      * @param list
      * @return
      * @throws Exception
@@ -91,8 +99,9 @@ public class ExcelUtil {
 
     /**
      * 生成excel文件
+     *
      * @param fileName 生成的文件名
-     * @param list 需要生成excel文件的元数据
+     * @param list     需要生成excel文件的元数据
      * @param isXSSF
      * @throws Exception
      */
@@ -157,7 +166,6 @@ public class ExcelUtil {
     }
 
     /**
-     *
      * @param excelVo
      * @return
      * @throws Exception
@@ -199,6 +207,32 @@ public class ExcelUtil {
             out.close();
         }
         return out.toByteArray();
+    }
+
+    public static List<Map> parseExcel(InputStream is) throws IOException {
+        List<Map> list = new ArrayList<Map>();
+        Workbook book = new XSSFWorkbook(is);
+        Sheet sheet = book.getSheetAt(0);
+        for (int i = 1; i < sheet.getLastRowNum() + 1; i++) {
+            Row row = sheet.getRow(i);
+            if (null == row) {
+               break;
+            }
+            Map map = new HashMap();
+            for (int j = 0; j < (row.getLastCellNum() + 1); j++) {
+                Cell cell = sheet.getRow(i).getCell(j);
+                if (cell == null) {
+                   break;
+                }
+                if (cell.getCellType() == Cell.CELL_TYPE_NUMERIC) {
+                    map.put(sheet.getRow(sheet.getFirstRowNum()).getCell(j).getStringCellValue(), cell.getNumericCellValue());
+                } else {
+                    map.put(sheet.getRow(sheet.getFirstRowNum()).getCell(j).getStringCellValue(), cell.getStringCellValue());
+                }
+            }
+            list.add(map);
+        }
+        return list;
     }
 
     /**
@@ -269,5 +303,12 @@ public class ExcelUtil {
             return true;
         }
         return false;
+    }
+
+    public static void main(String[] args) throws Exception {
+        String path = "d:/test.xlsx";
+        FileInputStream is = new FileInputStream(new File(path));
+        List list = parseExcel(is);
+        System.out.println(list);
     }
 }
