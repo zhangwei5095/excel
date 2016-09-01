@@ -209,25 +209,25 @@ public class ExcelUtil {
         return out.toByteArray();
     }
 
-    public static List<Map> parseExcel(InputStream is,boolean isXls) throws IOException {
+    public static List<Map> parseExcel(InputStream is, boolean isXSSF) throws IOException {
         List<Map> list = new ArrayList<Map>();
         Workbook book;
-        if(isXls){
+        if (isXSSF) {
+            book = new XSSFWorkbook(is);
+        } else {
             book = new HSSFWorkbook(is);
-        }else{
-           book = new XSSFWorkbook(is);
         }
         Sheet sheet = book.getSheetAt(0);
         for (int i = 1; i < sheet.getLastRowNum() + 1; i++) {
             Row row = sheet.getRow(i);
             if (null == row) {
-               break;
+                break;
             }
             Map map = new HashMap();
             for (int j = 0; j < (row.getLastCellNum() + 1); j++) {
                 Cell cell = sheet.getRow(i).getCell(j);
                 if (cell == null) {
-                   break;
+                    break;
                 }
                 if (cell.getCellType() == Cell.CELL_TYPE_NUMERIC) {
                     map.put(sheet.getRow(sheet.getFirstRowNum()).getCell(j).getStringCellValue(), cell.getNumericCellValue());
@@ -313,7 +313,7 @@ public class ExcelUtil {
     public static void main(String[] args) throws Exception {
         String path = "d:/util.xlsx";
         FileInputStream is = new FileInputStream(new File(path));
-        List list = parseExcel(is,false);
+        List list = parseExcel(is, false);
         System.out.println(list);
     }
 }
