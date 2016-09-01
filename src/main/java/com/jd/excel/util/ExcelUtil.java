@@ -209,6 +209,20 @@ public class ExcelUtil {
         return out.toByteArray();
     }
 
+    public static List<Map> parseExcel(String path) throws Exception {
+        if (path == null || path == "") {
+            throw new Exception("path is null;" + path);
+        }
+        if (path.endsWith(".xls") || path.endsWith(".xlsx")) {
+            FileInputStream is = new FileInputStream(new File(path));
+            boolean isXSSF = path.endsWith(".xlsx") ? true : false;
+            List<Map> list = parseExcel(is, isXSSF);
+            return list;
+        } else {
+            throw new Exception("file is invalid;" + path);
+        }
+    }
+
     public static List<Map> parseExcel(InputStream is, boolean isXSSF) throws IOException {
         List<Map> list = new ArrayList<Map>();
         Workbook book;
@@ -312,8 +326,7 @@ public class ExcelUtil {
 
     public static void main(String[] args) throws Exception {
         String path = "d:/util.xlsx";
-        FileInputStream is = new FileInputStream(new File(path));
-        List list = parseExcel(is, false);
+        List list = parseExcel(path);
         System.out.println(list);
     }
 }
